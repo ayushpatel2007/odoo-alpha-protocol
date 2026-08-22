@@ -40,6 +40,8 @@ export type Trip = {
   progress: number;
   destinationIds: string[];
   destinations?: Destination[];
+  isPublic?: boolean;
+  shareSlug?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };

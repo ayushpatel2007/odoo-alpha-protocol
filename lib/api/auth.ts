@@ -1,12 +1,11 @@
 import { createClient } from '@/lib/supabase/client';
 import { UserProfile } from '@/types';
 import { DEMO_USER } from '@/lib/mock-data/seed-catalog';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 export async function login(email: string, password?: string): Promise<{ user: UserProfile | null; error: string | null }> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password: password || '',
@@ -37,6 +36,7 @@ export async function login(email: string, password?: string): Promise<{ user: U
       };
 
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('gt_logged_out');
         localStorage.setItem('gt_session_user', JSON.stringify(userProfile));
       }
 
@@ -45,11 +45,17 @@ export async function login(email: string, password?: string): Promise<{ user: U
   }
 
   // Local / Demo mode fallback
+  const firstName = email ? email.split('@')[0] : 'Traveler';
+  const formattedFirstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
   const userProfile: UserProfile = {
     ...DEMO_USER,
+    id: `usr-${Date.now()}`,
     email: email || DEMO_USER.email,
+    firstName: formattedFirstName,
+    lastName: '',
   };
   if (typeof window !== 'undefined') {
+    localStorage.removeItem('gt_logged_out');
     localStorage.setItem('gt_session_user', JSON.stringify(userProfile));
   }
   return { user: userProfile, error: null };
@@ -66,10 +72,8 @@ export async function register(data: {
   bio?: string;
   avatarFile?: File | null;
 }): Promise<{ user: UserProfile | null; error: string | null }> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password || 'Password123!',
@@ -133,6 +137,7 @@ export async function register(data: {
       };
 
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('gt_logged_out');
         localStorage.setItem('gt_session_user', JSON.stringify(userProfile));
       }
 
@@ -149,12 +154,13 @@ export async function register(data: {
     phone: data.phone || '',
     city: data.city || '',
     country: data.country || '',
-    avatarUrl: data.avatarFile ? URL.createObjectURL(data.avatarFile) : DEMO_USER.avatarUrl,
+    avatarUrl: data.avatarFile ? URL.createObjectURL(data.avatarFile) : '',
     bio: data.bio || '',
     createdAt: new Date().toISOString(),
   };
 
   if (typeof window !== 'undefined') {
+    localStorage.removeItem('gt_logged_out');
     localStorage.setItem('gt_session_user', JSON.stringify(newUser));
   }
 
@@ -162,23 +168,20 @@ export async function register(data: {
 }
 
 export async function logout(): Promise<void> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
     await supabase.auth.signOut();
   }
 
   if (typeof window !== 'undefined') {
     localStorage.removeItem('gt_session_user');
+    localStorage.setItem('gt_logged_out', 'true');
   }
 }
 
 export async function getCurrentUser(): Promise<UserProfile | null> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
@@ -199,18 +202,25 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
         bio: profile?.bio || '',
       };
     }
+
+    return null;
   }
 
   if (typeof window !== 'undefined') {
+    const isLoggedOut = localStorage.getItem('gt_logged_out');
+    if (isLoggedOut === 'true') {
+      return null;
+    }
+
     const saved = localStorage.getItem('gt_session_user');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return DEMO_USER;
+        return null;
       }
     }
   }
 
-  return DEMO_USER;
+  return null;
 }

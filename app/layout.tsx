@@ -7,7 +7,12 @@ export const metadata: Metadata = {
   title: 'GlobeTrotter — Empowering Personalized Travel Planning',
   description: 'GlobeTrotter is a personalized travel planning web application built for the Odoo × LDCE Hackathon by Team Alpha Protocol.',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/gt-ap-favicon.png', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: '/gt-ap-favicon.png',
+    apple: '/gt-ap-favicon.png',
   },
 };
 

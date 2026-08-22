@@ -7,17 +7,32 @@ import { getPublicTrip } from '@/lib/api/sharing';
 export default function SharedTripPage({ params }: { params: { slug: string } }) {
   const [trip, setTrip] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getPublicTrip(params.slug).then(setTrip).catch(() => setTrip(null)).finally(() => setLoading(false));
+    getPublicTrip(params.slug)
+      .then(setTrip)
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Unable to load this shared trip.');
+        setTrip(null);
+      })
+      .finally(() => setLoading(false));
   }, [params.slug]);
 
   if (loading) return <main className="min-h-screen bg-slate-50 p-8 text-center">Loading shared trip...</main>;
-  if (!trip) return <main className="min-h-screen bg-slate-50 p-8 text-center"><h1 className="text-2xl font-black">Trip not found</h1><p className="mt-2 text-sm text-slate-500">This trip may be private or the link may have expired.</p></main>;
+  if (!trip) return <main className="min-h-screen bg-slate-50 p-8 text-center"><h1 className="text-2xl font-black">Trip not found</h1><p className="mt-2 text-sm text-slate-500">{error || 'This trip may be private or the link may have expired.'}</p></main>;
 
   return (
     <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
+      <div className="mx-auto max-w-5xl px-4 py-8 md:px-8 space-y-6">
+        {/* Brand Header */}
+        <div className="flex items-center justify-between bg-slate-900 px-6 py-4 rounded-2xl shadow-md border border-slate-800">
+          <img src="/gt-ap-logo.png" alt="GlobeTrotter Logo" className="h-10 w-auto object-contain" />
+          <span className="text-xs font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+            Public Itinerary
+          </span>
+        </div>
+
         <div className="overflow-hidden rounded-3xl bg-slate-900 text-white shadow-xl">
           {trip.cover_image_url && <img src={trip.cover_image_url} alt={trip.name} className="h-64 w-full object-cover opacity-60" />}
           <div className="p-7">

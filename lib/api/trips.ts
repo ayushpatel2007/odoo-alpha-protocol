@@ -1,20 +1,38 @@
 import { createClient } from '@/lib/supabase/client';
 import { Trip, TripStatus } from '@/types';
-import { INITIAL_TRIPS, INITIAL_DESTINATIONS } from '@/lib/mock-data/seed-catalog';
+import { INITIAL_TRIPS } from '@/lib/mock-data/seed-catalog';
 import { getDestinations } from './destinations';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
+
+function buildTripDayRows(tripId: string, startDate: string, endDate: string) {
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  const rows: Array<{ trip_id: string; day_number: number; date: string }> = [];
+
+  for (let cursor = new Date(start), n = 1; cursor <= end; cursor.setDate(cursor.getDate() + 1), n += 1) {
+    rows.push({
+      trip_id: tripId,
+      day_number: n,
+      date: cursor.toISOString().slice(0, 10),
+    });
+  }
+
+  return rows;
+}
 
 export async function getTrips(userId?: string): Promise<Trip[]> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
 
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
     let query = supabase
       .from('trips')
       .select('*, trip_destinations(destination_id, sequence_order, destinations(*))')
       .order('created_at', { ascending: false });
 
-    if (userId) {
-      query = query.eq('owner_id', userId);
+    const effectiveUserId = authUser?.id || (userId && userId.length > 20 ? userId : null);
+    if (effectiveUserId) {
+      query = query.eq('owner_id', effectiveUserId);
     }
 
     const { data, error } = await query;
@@ -49,6 +67,8 @@ export async function getTrips(userId?: string): Promise<Trip[]> {
           progress: t.progress || 0,
           destinationIds: dests.map((d: any) => d.id),
           destinations: dests,
+          isPublic: Boolean(t.is_public),
+          shareSlug: t.share_slug,
           createdAt: t.created_at,
           updatedAt: t.updated_at,
         };
@@ -99,20 +119,26 @@ export async function createTrip(data: {
   coverFile?: File | null;
   customCoverUrl?: string;
 }): Promise<{ trip: Trip | null; error: string | null }> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
   const allDestinations = await getDestinations();
   const selectedDestinations = allDestinations.filter((d) => data.destinationIds.includes(d.id));
   const estimatedBudget = selectedDestinations.reduce((sum, d) => sum + d.estimatedBudget, 0) || 50000;
   const defaultCover = selectedDestinations[0]?.imageUrl || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80';
 
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+
+    const effectiveOwnerId = authUser?.id || (data.ownerId && data.ownerId.length > 20 ? data.ownerId : null);
+
+    if (!effectiveOwnerId) {
+      return { trip: null, error: 'Please sign in to save your trip to Supabase.' };
+    }
+
     let coverImageUrl = data.customCoverUrl || defaultCover;
 
     if (data.coverFile) {
       const fileExt = data.coverFile.name.split('.').pop();
-      const filePath = `${data.ownerId}/${Date.now()}.${fileExt}`;
+      const filePath = `${effectiveOwnerId}/${Date.now()}.${fileExt}`;
       const { error: uploadErr } = await supabase.storage
         .from('trip-covers')
         .upload(filePath, data.coverFile);
@@ -128,7 +154,7 @@ export async function createTrip(data: {
     const { data: insertedTrip, error: tripError } = await supabase
       .from('trips')
       .insert({
-        owner_id: data.ownerId,
+        owner_id: effectiveOwnerId,
         name: data.name,
         description: data.description || null,
         start_date: data.startDate,
@@ -153,7 +179,20 @@ export async function createTrip(data: {
         sequence_order: index + 1,
       }));
 
-      await supabase.from('trip_destinations').insert(junctionRows);
+      const { error: destinationsError } = await supabase.from('trip_destinations').insert(junctionRows);
+
+      if (destinationsError) {
+        return { trip: null, error: `Trip created, but destination links failed: ${destinationsError.message}` };
+      }
+    }
+
+    const dayRows = buildTripDayRows(insertedTrip.id, data.startDate, data.endDate);
+    if (dayRows.length > 0) {
+      const { error: daysError } = await supabase.from('trip_days').insert(dayRows);
+
+      if (daysError) {
+        return { trip: null, error: `Trip created, but itinerary days failed: ${daysError.message}` };
+      }
     }
 
     const newTrip: Trip = {
@@ -169,6 +208,8 @@ export async function createTrip(data: {
       progress: 25,
       destinationIds: data.destinationIds,
       destinations: selectedDestinations,
+      isPublic: false,
+      shareSlug: null,
       createdAt: insertedTrip.created_at,
     };
 
@@ -190,6 +231,8 @@ export async function createTrip(data: {
     progress: 25,
     destinationIds: data.destinationIds,
     destinations: selectedDestinations,
+    isPublic: false,
+    shareSlug: null,
     createdAt: new Date().toISOString(),
   };
 
@@ -202,10 +245,8 @@ export async function createTrip(data: {
 }
 
 export async function deleteTrip(tripId: string): Promise<boolean> {
-  const supabase = createClient();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (supabaseUrl && !supabaseUrl.includes('placeholder')) {
+  if (isSupabaseConfigured()) {
+    const supabase = createClient();
     const { error } = await supabase.from('trips').delete().eq('id', tripId);
     if (error) return false;
   }

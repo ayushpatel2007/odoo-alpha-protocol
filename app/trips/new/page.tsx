@@ -91,6 +91,11 @@ function CreateTripFormContent() {
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     e.preventDefault();
 
+    if (!user?.id) {
+      setError('Please sign in before creating a trip.');
+      return;
+    }
+
     if (!tripName) {
       setError('Please enter a name for your trip.');
       return;
@@ -113,7 +118,7 @@ function CreateTripFormContent() {
 
     try {
       const res = await createTrip({
-        ownerId: user?.id || 'usr-demo-alpha-001',
+        ownerId: user.id,
         name: tripName,
         description,
         startDate,
@@ -130,7 +135,7 @@ function CreateTripFormContent() {
       } else {
         setSuccessMsg(isDraft ? 'Trip draft saved successfully!' : 'Trip created successfully!');
         setTimeout(() => {
-          router.push('/trips');
+          router.push(`/trips/${res.trip?.id}`);
         }, 1000);
       }
     } catch (err: any) {

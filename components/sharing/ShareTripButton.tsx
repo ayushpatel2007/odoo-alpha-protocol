@@ -9,14 +9,18 @@ export function ShareTripButton({ tripId, initialPublic = false, initialSlug = n
   const [slug, setSlug] = useState<string | null>(initialSlug);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function toggle() {
     setSaving(true);
+    setError(null);
     try {
       const next = !isPublic;
       const nextSlug = await setTripPublic(tripId, next);
       setIsPublic(next);
       setSlug(nextSlug);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update sharing.');
     } finally {
       setSaving(false);
     }
@@ -36,6 +40,7 @@ export function ShareTripButton({ tripId, initialPublic = false, initialSlug = n
         <div><p className="text-sm font-extrabold text-slate-900">Share this trip</p><p className="mt-1 text-xs text-slate-500">{isPublic ? 'Anyone with the link can view it.' : 'This trip is private.'}</p></div>
         <button disabled={saving} onClick={toggle} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold ${isPublic ? 'bg-slate-900 text-white' : 'bg-amber-500 text-slate-950'}`}><Share2 className="h-4 w-4" />{saving ? 'Saving...' : isPublic ? 'Make Private' : 'Make Public'}</button>
       </div>
+      {error && <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-600">{error}</p>}
       {isPublic && slug && <div className="mt-3 flex gap-2"><input readOnly value={`${typeof window !== 'undefined' ? window.location.origin : ''}/shared/${slug}`} className="min-w-0 flex-1 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600" /><button onClick={copy} className="rounded-xl bg-slate-100 px-3 text-slate-700" aria-label="Copy share link">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}</button></div>}
     </div>
   );

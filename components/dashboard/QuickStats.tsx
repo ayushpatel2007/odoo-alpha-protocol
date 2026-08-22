@@ -9,12 +9,24 @@ type QuickStatsProps = {
 };
 
 export function QuickStats({ trips }: QuickStatsProps) {
-  const totalTrips = trips.length || 12;
-  const upcomingTrips = trips.filter((t) => t.status === 'upcoming').length || 3;
-  const totalBudget = trips.reduce((sum, t) => sum + (t.estimatedBudget || 0), 0) || 270000;
+  const totalTrips = trips.length;
+  const upcomingTrips = trips.filter((t) => t.status === 'upcoming').length;
+  const totalBudget = trips.reduce((sum, t) => sum + (t.estimatedBudget || 0), 0);
 
-  // Format currency in Lakhs/Thousands
+  // Dynamically calculate unique countries from real trip destinations
+  const uniqueCountries = new Set<string>();
+  trips.forEach((t) => {
+    (t.destinations || []).forEach((d) => {
+      if (d.country?.trim()) {
+        uniqueCountries.add(d.country.trim());
+      }
+    });
+  });
+  const countriesVisited = uniqueCountries.size;
+
+  // Format currency dynamically
   const formatBudget = (amount: number) => {
+    if (amount === 0) return '₹0';
     if (amount >= 100000) {
       return `₹${(amount / 100000).toFixed(1)}L`;
     }
@@ -38,7 +50,7 @@ export function QuickStats({ trips }: QuickStatsProps) {
     },
     {
       label: 'Countries Visited',
-      value: 8,
+      value: countriesVisited,
       subtitle: 'Global destinations',
       icon: Globe2,
       color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',

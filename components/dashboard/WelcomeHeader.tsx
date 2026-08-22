@@ -7,7 +7,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 
 export function WelcomeHeader() {
   const { user } = useAuth();
-  const firstName = user?.firstName || 'Ayush';
+  const firstName = user?.firstName || 'Traveler';
 
   return (
     <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-800 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">

@@ -43,6 +43,7 @@ export default function TripInsightsPage({ params }: { params: { id: string } })
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadInsights(); }, [params.id]);
 
   if (loading) return (

@@ -111,7 +111,7 @@ export default function TripOverviewPage() {
       </div>
 
       <div className="mt-4">
-        <ShareTripButton tripId={tripId} />
+        <ShareTripButton tripId={tripId} initialPublic={trip.isPublic} initialSlug={trip.shareSlug} />
       </div>
 
       {/* Part 2 Planning Navigation */}

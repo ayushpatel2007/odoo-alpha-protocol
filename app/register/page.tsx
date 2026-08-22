@@ -116,17 +116,11 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
-              <Globe className="w-6 h-6 text-slate-950 stroke-[2.5]" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                Join GlobeTrotter
-              </h1>
-              <p className="text-xs text-amber-400 font-semibold tracking-wide uppercase">
-                Team Alpha Protocol Registration
-              </p>
-            </div>
+            <img
+              src="/gt-ap-logo.png"
+              alt="GlobeTrotter Alpha Protocol Logo"
+              className="h-14 w-auto object-contain drop-shadow-lg"
+            />
           </div>
           <div className="text-xs text-slate-400">
             Already have an account?{' '}

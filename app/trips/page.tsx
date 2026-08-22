@@ -30,7 +30,8 @@ export default function TripsPage() {
 
   useEffect(() => {
     fetchTrips();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleDeleteTrip = async (id: string) => {
     const success = await apiDeleteTrip(id);

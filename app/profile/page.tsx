@@ -3,38 +3,35 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useAuth } from '@/components/auth/AuthContext';
-import { updateProfile, getPreferences } from '@/lib/api/users';
+import { updateProfile } from '@/lib/api/users';
 import { getSavedDestinations, toggleSaveDestination } from '@/lib/api/destinations';
-import { Destination, TravelPreferences } from '@/types';
+import { Destination } from '@/types';
 import {
   User,
   Mail,
   Phone,
   MapPin,
-  Calendar,
   Edit3,
   Save,
   X,
-  Upload,
   Heart,
   Sparkles,
   CheckCircle,
-  ShieldCheck,
   Star,
   Trash2,
 } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, preferences, setUser } = useAuth();
+  const { user, setUser } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [firstName, setFirstName] = useState(user?.firstName || 'Ayush');
-  const [lastName, setLastName] = useState(user?.lastName || 'Patel');
-  const [email, setEmail] = useState(user?.email || 'ayush@alphaprotocol.io');
-  const [phone, setPhone] = useState(user?.phone || '+91 98765 43210');
-  const [city, setCity] = useState(user?.city || 'Ahmedabad');
-  const [country, setCountry] = useState(user?.country || 'India');
-  const [bio, setBio] = useState(user?.bio || 'Avid explorer & lead architect for Team Alpha Protocol.');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [bio, setBio] = useState('');
 
   const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,9 +39,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setFirstName(user.firstName);
-      setLastName(user.lastName);
-      setEmail(user.email);
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setEmail(user.email || '');
       setPhone(user.phone || '');
       setCity(user.city || '');
       setCountry(user.country || '');
@@ -93,278 +90,281 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
           <div className="w-24 h-24 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center text-2xl overflow-hidden ring-4 ring-amber-500/20 shrink-0">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={firstName} className="w-full h-full object-cover" />
+              <img src={user.avatarUrl} alt={firstName || 'User'} className="w-full h-full object-cover" />
             ) : (
-              `${firstName?.[0] || 'A'}${lastName?.[0] || 'P'}`
+              `${firstName?.[0] || 'U'}${lastName?.[0] || ''}`
             )}
           </div>
 
           <div className="space-y-1 text-center sm:text-left">
-            <div className="flex items-center gap-2 justify-center sm:justify-start">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-                {user ? `${user.firstName} ${user.lastName}` : 'Ayush Patel'}
+                {firstName} {lastName}
               </h1>
-              <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                Team Lead
+              <span className="p-1 bg-amber-500/20 text-amber-400 rounded-full">
+                <Sparkles className="w-4 h-4" />
               </span>
             </div>
-            <p className="text-xs text-slate-300 font-medium">{user?.email || 'ayush@alphaprotocol.io'}</p>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-400 pt-1">
-              <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                {city && country ? `${city}, ${country}` : 'Ahmedabad, India'}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                Member since Jan 2026
-              </span>
-            </div>
+            <p className="text-xs text-amber-400 font-semibold">{email}</p>
+            <p className="text-xs text-slate-400 max-w-md pt-1">
+              {bio || 'No bio specified yet.'}
+            </p>
           </div>
         </div>
 
-        <div className="relative z-10 shrink-0 self-center md:self-auto">
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all active:scale-95"
-          >
-            {isEditing ? (
-              <>
-                <X className="w-4 h-4" />
-                <span>Cancel Editing</span>
-              </>
-            ) : (
-              <>
-                <Edit3 className="w-4 h-4" />
-                <span>Edit Profile</span>
-              </>
-            )}
-          </button>
+        <div className="flex items-center gap-3 relative z-10 shrink-0 self-end md:self-center">
+          {!isEditing ? (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span>Edit Profile</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsEditing(false)}
+              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all"
+            >
+              <X className="w-4 h-4" />
+              <span>Cancel</span>
+            </button>
+          )}
         </div>
+
+        {/* Ambient glow */}
+        <div className="absolute -right-16 -top-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      {/* Success Notification */}
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
-          <CheckCircle className="w-4 h-4" />
+        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-semibold text-xs rounded-2xl flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
-      {/* Main Grid: Profile Form & Preferences */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Editable Profile Details */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+      {/* Main Grid: Profile Info & Saved Destinations */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Profile Details Column */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-8 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                 <User className="w-5 h-5 text-amber-500" />
                 <span>Personal Information</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Manage your account credentials and travel profile.
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleSaveProfile} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">First Name</label>
-                <input
-                  type="text"
-                  disabled={!isEditing}
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Last Name</label>
-                <input
-                  type="text"
-                  disabled={!isEditing}
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Email Address</label>
-                <input
-                  type="email"
-                  disabled={!isEditing}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
+            {isEditing ? (
+              <form onSubmit={handleSaveProfile} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">First Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Phone Number</label>
-                <input
-                  type="tel"
-                  disabled={!isEditing}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-            </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Last Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">City</label>
-                <input
-                  type="text"
-                  disabled={!isEditing}
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Phone</label>
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Country</label>
-                <input
-                  type="text"
-                  disabled={!isEditing}
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-            </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Email Address</label>
+                    <input
+                      type="email"
+                      disabled
+                      value={email}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-xs font-semibold text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Bio</label>
-              <textarea
-                rows={3}
-                disabled={!isEditing}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 disabled:opacity-75 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
-              />
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">City</label>
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="Ahmedabad"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
 
-            {isEditing && (
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-5 py-2 bg-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Save Profile</span>
-                </button>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Country</label>
+                    <input
+                      type="text"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="India"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Bio</label>
+                  <textarea
+                    rows={3}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell us about your travel style..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 shadow-md"
+                  >
+                    <Save className="w-4 h-4 text-amber-400" />
+                    <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-6 text-xs font-medium text-slate-600">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold">Full Name</p>
+                      <p className="font-bold text-slate-900 text-sm">
+                        {firstName} {lastName}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold">Email Address</p>
+                      <p className="font-bold text-slate-900 text-sm">{email}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold">Phone</p>
+                      <p className="font-bold text-slate-900 text-sm">{phone || 'Not specified'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <MapPin className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-slate-400 font-semibold">Location</p>
+                      <p className="font-bold text-slate-900 text-sm">
+                        {city || country ? `${city}${city && country ? ', ' : ''}${country}` : 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {bio && (
+                  <div className="pt-4 border-t border-slate-100">
+                    <p className="text-[11px] text-slate-400 font-semibold mb-1">About Bio</p>
+                    <p className="text-slate-700 leading-relaxed">{bio}</p>
+                  </div>
+                )}
               </div>
             )}
-          </form>
+          </div>
         </div>
 
-        {/* Right Col: Travel Preferences Summary */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6 h-fit">
-          <div className="border-b border-slate-100 pb-4">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Travel Preferences</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">Your travel style & interests.</p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                Pacing & Style
-              </span>
-              <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-extrabold rounded-full capitalize">
-                {preferences.travelStyle || 'Balanced'}
-              </span>
+        {/* Saved Destinations Sidebar Column */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                <span>Saved Destinations ({savedDestinations.length})</span>
+              </h3>
             </div>
 
-            <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                Budget Preference
-              </span>
-              <span className="inline-block px-3 py-1 bg-slate-900 text-white text-xs font-extrabold rounded-full capitalize">
-                {preferences.budgetTier || 'Moderate'}
-              </span>
-            </div>
-
-            <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                Activity Interests
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {(preferences.interests || ['Culture', 'Food', 'Adventure', 'History']).map((int) => (
-                  <span
-                    key={int}
-                    className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg"
+            {savedDestinations.length === 0 ? (
+              <p className="text-xs text-slate-400 text-center py-6">
+                No saved destinations yet. Explore destinations to bookmark your favorites!
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {savedDestinations.map((dest) => (
+                  <div
+                    key={dest.id}
+                    className="p-3 bg-slate-50 rounded-2xl border border-slate-200/60 flex items-center justify-between gap-3 group hover:bg-slate-100 transition-all"
                   >
-                    {int}
-                  </span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={dest.imageUrl}
+                        alt={dest.city}
+                        className="w-12 h-12 rounded-xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 truncate">{dest.city}</h4>
+                        <p className="text-[11px] text-slate-500 truncate">{dest.country}</p>
+                        <div className="flex items-center gap-1 text-[10px] text-amber-500 font-bold mt-0.5">
+                          <Star className="w-3 h-3 fill-amber-500" />
+                          <span>{dest.rating}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveSaved(dest.id)}
+                      className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                      title="Remove saved"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
-      </div>
-
-      {/* Saved Destinations Section */}
-      <div className="space-y-6">
-        <div className="border-b border-slate-200/80 pb-4">
-          <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-            <span>Saved Wishlist Destinations</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Cities and stops you saved for future travel planning.
-          </p>
-        </div>
-
-        {savedDestinations.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-8 text-center space-y-2">
-            <p className="text-xs text-slate-500">No saved destinations yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {savedDestinations.map((dest) => (
-              <div
-                key={dest.id}
-                className="bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm flex items-center justify-between gap-3 group"
-              >
-                <img
-                  src={dest.imageUrl}
-                  alt={dest.city}
-                  className="w-14 h-14 rounded-xl object-cover shrink-0"
-                />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-extrabold text-slate-900 text-xs truncate">{dest.city}</h4>
-                  <p className="text-[11px] text-amber-600 font-semibold truncate">{dest.country}</p>
-                  <p className="text-[10px] text-slate-400">Est. ₹{dest.estimatedBudget.toLocaleString('en-IN')}</p>
-                </div>
-                <button
-                  onClick={() => handleRemoveSaved(dest.id)}
-                  className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                  title="Remove from saved"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </PageContainer>
   );

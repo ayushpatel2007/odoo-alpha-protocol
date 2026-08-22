@@ -60,15 +60,11 @@ export default function LoginPage() {
 
         {/* Top Branding */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <Globe className="w-6 h-6 text-slate-950 stroke-[2.5]" />
-          </div>
-          <div>
-            <span className="font-bold text-xl tracking-tight text-white block">GlobeTrotter</span>
-            <span className="text-[11px] font-semibold text-amber-400 tracking-wider uppercase">
-              Odoo × LDCE Hackathon · Team Alpha Protocol
-            </span>
-          </div>
+          <img
+            src="/gt-ap-logo.png"
+            alt="GlobeTrotter Alpha Protocol Logo"
+            className="h-16 w-auto object-contain drop-shadow-xl"
+          />
         </div>
 
         {/* Center Tagline & Feature Highlights */}

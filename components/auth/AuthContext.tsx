@@ -32,9 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u) {
         const prefs = await getPreferences(u.id);
         setPreferences(prefs);
+      } else {
+        setUser(null);
       }
     } catch (err) {
       console.error('Error restoring session:', err);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -43,6 +46,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshUser();
   }, []);
+
+  const handleLogin: typeof apiLogin = async (email, password) => {
+    const res = await apiLogin(email, password);
+    if (res.user) {
+      setUser(res.user);
+      const prefs = await getPreferences(res.user.id);
+      setPreferences(prefs);
+    }
+    return res;
+  };
+
+  const handleRegister: typeof apiRegister = async (data) => {
+    const res = await apiRegister(data);
+    if (res.user) {
+      setUser(res.user);
+      const prefs = await getPreferences(res.user.id);
+      setPreferences(prefs);
+    }
+    return res;
+  };
 
   const handleLogout = async () => {
     await apiLogout();
@@ -64,8 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         preferences,
         isLoading,
-        login: apiLogin,
-        register: apiRegister,
+        login: handleLogin,
+        register: handleRegister,
         logout: handleLogout,
         refreshUser,
         updatePreferences: handleUpdatePreferences,

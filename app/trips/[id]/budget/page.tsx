@@ -23,6 +23,7 @@ export default function TripBudgetPage() {
     const [t, e] = await Promise.all([getTripById(tripId), getExpenses(tripId)]);
     setTrip(t); setExpenses(e);
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load().catch(console.error); }, [tripId]);
 
   async function submit(e: FormEvent) {

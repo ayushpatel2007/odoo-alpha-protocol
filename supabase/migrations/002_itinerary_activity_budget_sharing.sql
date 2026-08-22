@@ -182,6 +182,9 @@ CREATE POLICY "Users can update own expenses"
   ));
 
 DROP POLICY IF EXISTS "Users can delete own expenses" ON public.expenses
+;
+CREATE POLICY "Users can delete own expenses"
+  ON public.expenses FOR DELETE
   USING (EXISTS (
     SELECT 1 FROM public.trips t
     WHERE t.id = expenses.trip_id AND t.owner_id = auth.uid()

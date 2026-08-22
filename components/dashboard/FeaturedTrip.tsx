@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Calendar, MapPin, ArrowRight, IndianRupee, Clock, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, Clock, Sparkles, Plus, Compass } from 'lucide-react';
 import { Trip } from '@/types';
 
 type FeaturedTripProps = {
@@ -10,32 +10,48 @@ type FeaturedTripProps = {
 };
 
 export function FeaturedTrip({ trip }: FeaturedTripProps) {
-  // Default hero trip if none provided
-  const featured = trip || {
-    id: 'trp-euro-escape-2026',
-    name: 'European Escape',
-    description: 'Paris → London → Rome',
-    startDate: '2026-09-12',
-    endDate: '2026-09-21',
-    estimatedBudget: 85000,
-    progress: 72,
-    coverImageUrl: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80',
-    destinations: [
-      { city: 'Paris', country: 'France' },
-      { city: 'London', country: 'United Kingdom' },
-      { city: 'Rome', country: 'Italy' },
-    ],
-  };
+  if (!trip) {
+    return (
+      <div className="bg-slate-900 text-white rounded-3xl p-8 border border-slate-800 shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-3 relative z-10 max-w-xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-xs font-semibold">
+            <Compass className="w-3.5 h-3.5" />
+            <span>Ready for your next journey?</span>
+          </div>
+          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+            No active trips scheduled yet
+          </h2>
+          <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
+            Build your personalized multi-city travel itinerary, customize budgets, and organize day-by-day activities.
+          </p>
+        </div>
 
-  const destinationCities = featured.destinations?.map((d) => d.city).join(' → ') || 'Paris → London → Rome';
+        <div className="relative z-10 shrink-0">
+          <Link
+            href="/trips/new"
+            className="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Plan Your First Trip</span>
+          </Link>
+        </div>
+
+        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      </div>
+    );
+  }
+
+  const destinationCities = trip.destinations?.map((d) => d.city).join(' → ') || trip.name;
+  const startDateStr = new Date(trip.startDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  const endDateStr = new Date(trip.endDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200/80 shadow-md overflow-hidden flex flex-col lg:flex-row group hover:shadow-lg transition-all">
       {/* Cover Image Half */}
       <div className="lg:w-1/2 relative h-64 lg:h-auto overflow-hidden">
         <img
-          src={featured.coverImageUrl}
-          alt={featured.name}
+          src={trip.coverImageUrl || 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80'}
+          alt={trip.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-slate-950/20" />
@@ -52,7 +68,7 @@ export function FeaturedTrip({ trip }: FeaturedTripProps) {
           </div>
 
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            {featured.name}
+            {trip.name}
           </h2>
 
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -63,13 +79,17 @@ export function FeaturedTrip({ trip }: FeaturedTripProps) {
           <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium pt-1">
             <div className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-slate-400" />
-              <span>12 Sep – 21 Sep 2026</span>
+              <span>{startDateStr} – {endDateStr}</span>
             </div>
-            <span>•</span>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-slate-400" />
-              <span>9 days · 3 destinations</span>
-            </div>
+            {trip.destinations && trip.destinations.length > 0 && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span>{trip.destinations.length} destination{trip.destinations.length > 1 ? 's' : ''}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -78,7 +98,7 @@ export function FeaturedTrip({ trip }: FeaturedTripProps) {
           <div className="flex items-center justify-between text-xs">
             <span className="font-semibold text-slate-500">Estimated Budget</span>
             <span className="font-extrabold text-slate-900 text-base">
-              ₹{featured.estimatedBudget.toLocaleString('en-IN')}
+              ₹{(trip.estimatedBudget || 0).toLocaleString('en-IN')}
             </span>
           </div>
 
@@ -86,12 +106,12 @@ export function FeaturedTrip({ trip }: FeaturedTripProps) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="text-slate-600">Planning Progress</span>
-              <span className="text-amber-600 font-extrabold">{featured.progress}%</span>
+              <span className="text-amber-600 font-extrabold">{trip.progress || 25}%</span>
             </div>
             <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-500"
-                style={{ width: `${featured.progress}%` }}
+                style={{ width: `${trip.progress || 25}%` }}
               />
             </div>
           </div>
@@ -100,7 +120,7 @@ export function FeaturedTrip({ trip }: FeaturedTripProps) {
         {/* Action Button */}
         <div className="pt-2">
           <Link
-            href={`/trips/${featured.id}`}
+            href={`/trips/${trip.id}`}
             className="w-full sm:w-auto px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
           >
             <span>Continue Planning</span>

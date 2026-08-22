@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 export type Expense = {
   id: string;
@@ -20,7 +21,31 @@ const mapExpense = (e: any): Expense => ({
   notes: e.notes,
 });
 
+const expensesStorageKey = (tripId: string) => `gt_expenses_${tripId}`;
+
+function readLocalExpenses(tripId: string): Expense[] {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem(expensesStorageKey(tripId));
+  if (!raw) return [];
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalExpenses(tripId: string, expenses: Expense[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(expensesStorageKey(tripId), JSON.stringify(expenses));
+  }
+}
+
 export async function getExpenses(tripId: string): Promise<Expense[]> {
+  if (!isSupabaseConfigured()) {
+    return readLocalExpenses(tripId);
+  }
+
   const supabase = createClient();
   const { data, error } = await supabase
     .from('expenses')
@@ -40,6 +65,20 @@ export async function createExpense(input: {
   expenseDate: string;
   notes?: string;
 }): Promise<Expense> {
+  if (!isSupabaseConfigured()) {
+    const next: Expense = {
+      id: `local-expense-${Date.now()}`,
+      tripId: input.tripId,
+      title: input.title,
+      category: input.category,
+      amount: input.amount,
+      expenseDate: input.expenseDate,
+      notes: input.notes || null,
+    };
+    writeLocalExpenses(input.tripId, [next, ...readLocalExpenses(input.tripId)]);
+    return next;
+  }
+
   const supabase = createClient();
   const { data, error } = await supabase
     .from('expenses')
@@ -59,6 +98,31 @@ export async function createExpense(input: {
 }
 
 export async function updateExpense(id: string, input: Partial<Omit<Expense, 'id' | 'tripId'>>): Promise<Expense> {
+  if (!isSupabaseConfigured()) {
+    if (typeof window === 'undefined') {
+      throw new Error('Expenses are unavailable outside the browser in demo mode.');
+    }
+
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith('gt_expenses_')) continue;
+
+      const tripId = key.replace('gt_expenses_', '');
+      const expenses = readLocalExpenses(tripId);
+      const existing = expenses.find((expense) => expense.id === id);
+      if (!existing) continue;
+
+      const updated = { ...existing, ...input };
+      writeLocalExpenses(
+        tripId,
+        expenses.map((expense) => (expense.id === id ? updated : expense)),
+      );
+      return updated;
+    }
+
+    throw new Error('Expense not found.');
+  }
+
   const supabase = createClient();
   const payload: Record<string, unknown> = {};
   if (input.title !== undefined) payload.title = input.title;
@@ -73,6 +137,21 @@ export async function updateExpense(id: string, input: Partial<Omit<Expense, 'id
 }
 
 export async function deleteExpense(id: string): Promise<void> {
+  if (!isSupabaseConfigured()) {
+    if (typeof window === 'undefined') return;
+
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key?.startsWith('gt_expenses_')) continue;
+      const tripId = key.replace('gt_expenses_', '');
+      writeLocalExpenses(
+        tripId,
+        readLocalExpenses(tripId).filter((expense) => expense.id !== id),
+      );
+    }
+    return;
+  }
+
   const supabase = createClient();
   const { error } = await supabase.from('expenses').delete().eq('id', id);
   if (error) throw new Error(error.message);

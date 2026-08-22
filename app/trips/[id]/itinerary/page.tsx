@@ -36,6 +36,7 @@ export default function ItineraryPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [tripId]);
 
   async function deleteActivity(id: string) {

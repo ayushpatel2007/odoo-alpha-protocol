@@ -8,6 +8,7 @@ import { getTripById } from '@/lib/api/trips';
 import { Trip } from '@/types';
 import { TripStatusBadge } from '@/components/trips/TripStatusBadge';
 import { MapPin, Calendar, Clock, IndianRupee, ArrowLeft, Sparkles, Layers, CheckCircle } from 'lucide-react';
+import { ShareTripButton } from '@/components/sharing/ShareTripButton';
 
 export default function TripOverviewPage() {
   const params = useParams();
@@ -109,6 +110,30 @@ export default function TripOverviewPage() {
         </div>
       </div>
 
+      <div className="mt-4">
+        <ShareTripButton tripId={tripId} />
+      </div>
+
+      {/* Part 2 Planning Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Link href={`/trips/${tripId}/itinerary`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-amber-400 hover:bg-amber-50/40">
+          <div className="text-sm font-extrabold text-slate-900">Itinerary</div>
+          <div className="mt-1 text-[11px] text-slate-500">Plan each day</div>
+        </Link>
+        <Link href={`/trips/${tripId}/activities`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-amber-400 hover:bg-amber-50/40">
+          <div className="text-sm font-extrabold text-slate-900">Activities</div>
+          <div className="mt-1 text-[11px] text-slate-500">Discover experiences</div>
+        </Link>
+        <Link href={`/trips/${tripId}/budget`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-amber-400 hover:bg-amber-50/40">
+          <div className="text-sm font-extrabold text-slate-900">Budget</div>
+          <div className="mt-1 text-[11px] text-slate-500">Track expenses</div>
+        </Link>
+        <Link href={`/trips/${tripId}/calendar`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-amber-400 hover:bg-amber-50/40">
+          <div className="text-sm font-extrabold text-slate-900">Calendar</div>
+          <div className="mt-1 text-[11px] text-slate-500">See your timeline</div>
+        </Link>
+      </div>
+
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Description & Overview */}
@@ -148,7 +173,7 @@ export default function TripOverviewPage() {
               Interactive Itinerary Builder
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Day-by-day activity timelines, hotel stops, flight bookings, and live budget charts will be connected in Frontend Part 2.
+              Build your day-by-day itinerary, add activities, track expenses, and view the trip calendar.
             </p>
           </div>
 
